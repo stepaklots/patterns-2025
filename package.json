@@ -1,0 +1,5 @@
+{
+  "scripts": {
+    "task-1-original": "node ./task-1/1-soc-opt.js"
+  }
+}
