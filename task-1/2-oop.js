@@ -50,163 +50,204 @@ const DataPadConfig = {
   },
 }
 
+class Row {
+  #cells = [];
+
+  constructor(cells) {
+    this.#cells = cells;
+  }
+
+  get() {
+    return this.#cells;
+  }
+
+  at(index) {
+    return this.#cells[index];
+  }
+
+  indexOf(name) {
+    return this.#cells.indexOf(name);
+  }
+
+  append(value) {
+    this.#cells.push(value);
+  }
+
+  update(index, value) {
+    this.#cells[index] = value;
+  }
+
+  toString() {
+    return this.#cells.join('');
+  }
+}
+
 class CSVData {
-  #header = [];
-  #rows = [];
+  #header;
+  #data = [];
 
   constructor({ input, withHeader }) {
     this.#parse(input, withHeader);
   }
 
-  #parse(input, withHeader) {
+  #parse(input, withHeaderRow) {
     if (!input) return;
     const lines = input.split('\n');
-    if (withHeader) {
-      this.#header = lines[0].split(',');
-    }
-    for (let i = 1; i < lines.length; i++) {
-      this.#rows.push(lines[i].split(','));
+    if (withHeaderRow) {
+      this.#header = new Row(lines[0].split(','));
+      this.#data = lines.slice(1).map(l => new Row(l.split(',')));
+    } else {
+      this.#data = lines.map(l => new Row(l.split(',')));
     }
   }
 
-  getHeader() {
-    return Array.from(this.#header);
+  header() {
+    return this.#header;
   }
 
-  getRows() {
-    return Array.from(this.#rows);
+  get() {
+    return this.#data;
   }
 }
 
 class NormalizedData {
-  #header = [];
+  #header;
   #rows = [];
 
   constructor({ data, normalizeBy, newColumnName }) {
-    this.#header = data.getHeader();
-    this.#header.push(newColumnName);
-    const normalizeByIndex = data.getHeader().indexOf(normalizeBy);
-    this.#addRelativePercentage(data.getRows(), normalizeByIndex)
+    this.#header = data.header();
+    this.#header.append(newColumnName);
+    const normalizeByIndex = data.header().indexOf(normalizeBy);
+    this.#rows = this.#addRelativePercentage(data.get(), normalizeByIndex);
   }
 
   #addRelativePercentage(rows, sourceIndex) {
     const maxValue = rows
-      .map(row => row[sourceIndex])
+      .map(row => row.at(sourceIndex))
       .reduce((a, b) => Math.max(a, b), -Infinity);
 
+    const result = [];
     for (const row of rows) {
-      const relativePercentage = (row[sourceIndex] / maxValue) * 100;
+      const relativePercentage = (row.at(sourceIndex) / maxValue) * 100;
       const rounded = Math.round(relativePercentage);
-      row.push(rounded.toString());
-      this.#rows.push(row);
+      row.append(rounded.toString());
+      result.push(row);
     }
+    return result;
   }
 
-  getHeader() {
-    return Array.from(this.#header);
+  header() {
+    return this.#header;
   }
 
-  getRows() {
-    return Array.from(this.#rows);
+  get() {
+    return this.#rows;
   }
 }
 
 class SortedData {
-  #header = [];
+  #header;
   #rows = [];
 
   constructor({ data, sortBy }) {
-    this.#header = data.getHeader();
-    const rows = data.getRows();
-    const sortIndex = data.getHeader().indexOf(sortBy);
+    this.#header = data.header();
+    const rows = data.get();
+    const sortIndex = data.header().indexOf(sortBy);
     if (!sortIndex) {
       this.#rows = rows;
       return;
     }
-    this.#rows = rows.sort((r1, r2) => r2[sortIndex] - r1[sortIndex]);
+    this.#rows = rows.sort((r1, r2) => r2.at(sortIndex) - r1.at(sortIndex));
   }
 
-  getHeader() {
-    return Array.from(this.#header);
+  header() {
+    return this.#header;
   }
 
-  getRows() {
-    return Array.from(this.#rows);
+  get() {
+    return this.#rows;
   }
 }
 
 class PaddedData {
-  #header = [];
+  #header;
   #rows = [];
 
   constructor({ data, config }) {
-    this.#header = data.getHeader();
-    this.#align(data, config);
+    this.#header = data.header();
+    this.#rows = this.#align(data, config);
   }
 
   #align(data, config) {
-    const header = data.getHeader();
-    const foundPadding = data.getHeader()
+    const header = data.header();
+    const foundPadding = data.header().get()
       .map(h => config.find(c => c.name === h));
-    const rows = data.getRows();
+    const rows = data.get();
+    const result = [];
     for (const row of rows) {
-      for (let i = 0; i < header.length; i++) {
+      for (let i = 0; i < header.get().length; i++) {
         const pad = foundPadding[i];
         if (pad && pad.align === PadAlign.left)
-          row[i] = row[i].padEnd(pad.length);
+          row.update(i, row.at(i).padEnd(pad.length));
         if (pad && pad.align === PadAlign.right)
-          row[i] = row[i].padStart(pad.length);
+          row.update(i, row.at(i).padStart(pad.length));
       }
-      this.#rows.push(row);
+      result.push(row);
     }
+    return result;
   }
 
-  getHeader() {
-    return Array.from(this.#header);
+  header() {
+    return this.#header;
   }
 
-  getRows() {
-    return Array.from(this.#rows);
+  get() {
+    return this.#rows;
   }
 }
 
 class ConsoleWriter {
   #data;
 
-  constructor(data) {
+  constructor({ data }) {
     this.#data = data;
   }
 
   write() {
-    const rows = this.#data.getRows();
+    const rows = this.#data.get();
     for (const row of rows) {
-      console.log(row.join(''));
+      console.log(row.toString());
     }
   }
 }
 
-const writer = new ConsoleWriter(
-  new PaddedData({
-    data: new SortedData({
-      data: new NormalizedData({
-        data: new CSVData({
-          input: data,
-          withHeader: true,
-        }),
-        normalizeBy: DataPadConfig.density.name,
-        newColumnName: DataPadConfig.areaNormalized.name,
-      }),
-      sortBy: DataPadConfig.areaNormalized.name,
-    }),
-    config: [
-      DataPadConfig.city,
-      DataPadConfig.population,
-      DataPadConfig.area,
-      DataPadConfig.density,
-      DataPadConfig.country,
-      DataPadConfig.areaNormalized,
-    ],
-  }),
-);
-writer.write();
+const csvData = new CSVData({
+  input: data,
+  withHeader: true,
+});
 
+const normalizedData = new NormalizedData({
+  data: csvData,
+  normalizeBy: DataPadConfig.density.name,
+  newColumnName: DataPadConfig.areaNormalized.name,
+});
+
+const sortedData = new SortedData({
+  data: normalizedData,
+  sortBy: DataPadConfig.areaNormalized.name,
+});
+
+const paddedData = new PaddedData({
+  data: sortedData,
+  config: [
+    DataPadConfig.city,
+    DataPadConfig.population,
+    DataPadConfig.area,
+    DataPadConfig.density,
+    DataPadConfig.country,
+    DataPadConfig.areaNormalized,
+  ],
+});
+
+const writer = new ConsoleWriter({ data: paddedData });
+writer.write();
