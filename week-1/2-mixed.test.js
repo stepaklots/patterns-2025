@@ -1,4 +1,4 @@
-const { Table, CsvData, DataPadConfig, PadAlign } = require('./3-mixed');
+const { Table, CsvData, DataPadConfig, PadAlign } = require('./2-mixed');
 
 /**
  * Test area
