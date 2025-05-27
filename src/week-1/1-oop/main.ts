@@ -29,5 +29,8 @@ const paddedTable = new PaddedTable({
   config: paddingConfig,
 });
 
-const writer = new ConsoleWriter({ data: paddedTable, separator: '' });
+const writer = new ConsoleWriter({
+  data: paddedTable,
+  valueJoiner: '',
+});
 writer.write();
