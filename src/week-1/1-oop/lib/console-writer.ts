@@ -1,0 +1,22 @@
+import { Row } from '@/week-1/1-oop/lib/row';
+import { Table } from '@/week-1/1-oop/lib/table';
+
+export class ConsoleWriter {
+  readonly #table: Table;
+  readonly #separator: string;
+
+  constructor(params: {
+    data: Table,
+    separator: string,
+  }) {
+    this.#table = params.data;
+    this.#separator = params.separator;
+  }
+
+  write(): void {
+    const rows: Row[] = this.#table.data();
+    for (const row of rows) {
+      console.log(row.toString(this.#separator));
+    }
+  }
+}
