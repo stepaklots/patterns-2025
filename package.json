@@ -8,7 +8,7 @@
     "1-3": "node src/week-1/3-procedural.js",
     "1-2-test": "node src/week-1/2-mixed.test.js",
     "2-0": "node src/week-2/0-task.js",
-    "2-1": "node src/week-2/1-contracts.js"
+    "2-1": "node src/week-2/1-oop.js"
   },
   "devDependencies": {
     "@eslint/json": "^0.12.0",
