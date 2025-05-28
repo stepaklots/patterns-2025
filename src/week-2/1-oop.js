@@ -1,10 +1,10 @@
 'use strict';
 
 const purchase = [
-  { name: 'Laptop',  price: 1500 },
-  { name: 'Mouse',  price: 25 },
-  { name: 'Keyboard',  price: 100 },
-  { name: 'HDMI cable',  price: 10 },
+  { name: 'Laptop', price: 1500 },
+  { name: 'Mouse', price: 25 },
+  { name: 'Keyboard', price: 100 },
+  { name: 'HDMI cable', price: 10 },
   { name: 'Bag', price: 50 },
   { name: 'Mouse pad', price: 5 },
 ];
@@ -65,17 +65,13 @@ class Basket {
   }
 
   complete() {
-    if (this.#resolve) {
-      const total = this.#total;
-      const items = this.#items;
-      this.#resolve({ errors: this.#errors, items, total });
-    } else {
-      console.log(`Promise empty`);
-    }
+    const total = this.#total;
+    const items = this.#items;
+    this.#resolve({ errors: this.#errors, items, total });
   }
 
-  then(value) {
-    this.#promise.then(value);
+  then(result) {
+    this.#promise.then(result);
   }
 }
 
