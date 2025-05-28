@@ -20,7 +20,7 @@ const normalizedTable = new NormalizedTable({
 });
 
 const sortedTable = new SortedTable({
-  table: normalizedTable,
+  data: normalizedTable,
   sortBy: '% max area',
 });
 
@@ -31,6 +31,6 @@ const paddedTable = new PaddedTable({
 
 const writer = new ConsoleWriter({
   data: paddedTable,
-  valueJoiner: '',
+  delimiter: '',
 });
 writer.write();

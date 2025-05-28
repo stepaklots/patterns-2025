@@ -12,28 +12,59 @@ export class CsvTable implements Table {
     delimiter: string,
     lineBreaker: string,
   }) {
+    const { header, data } = this.#parse(params);
+    this.#header = header;
+    this.#data = data;
+  }
+
+  #parse(params: {
+    input: string,
+    withHeader: boolean,
+    delimiter: string,
+    lineBreaker: string,
+  }) {
     const {
       input,
       withHeader,
       delimiter,
       lineBreaker,
     } = params;
-    this.#header = new Row([]);
-    if (!input) return;
+    const lines = this.#splitInput(input, lineBreaker);
+    const header = this.#parseHeader(withHeader, lines, delimiter);
+    const data = this.#parseData(lines, delimiter);
+    return { header, data };
+  }
+
+  #splitInput(input: string, lineBreaker: string) {
+    if (!input) {
+      throw new TypeError('Input is required');
+    }
     const lines = input.split(lineBreaker);
-    if (!lines.length || lines.length < 1) return;
+    if (!lines.length || lines.length < 1) {
+      throw new TypeError('Input is empty');
+    }
+    return lines;
+  }
+
+  #parseHeader(
+    withHeader: boolean,
+    lines: string[],
+    delimiter: string,
+  ): Row {
     if (withHeader) {
-      this.#header = new Row(
-        lines[0]
+      const headerStr = lines.shift() || '';
+      return new Row(
+        headerStr
           .split(delimiter)
           .map((c: string) => new Cell(c))
       );
-      lines.shift();
     } else {
-      this.#header = new Row([]);
+      return new Row([]);
     }
-    this.#data = lines
-      .slice(1)
+  }
+
+  #parseData(lines: string[], delimiter: string) {
+    return lines
       .map((line: string) => {
         const cells = line
           .split(delimiter)

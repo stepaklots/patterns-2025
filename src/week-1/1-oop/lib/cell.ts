@@ -1,6 +1,6 @@
 import { Cloneable } from '@/week-1/1-oop/lib/cloneable';
 
-export class Cell implements Cloneable {
+export class Cell implements Cloneable<Cell> {
   readonly #value: any;
 
   constructor(value: any) {

@@ -6,13 +6,13 @@ export class SortedTable implements Table {
   readonly #data: Row[] = [];
 
   constructor(params: {
-    table: Table,
+    data: Table,
     sortBy: string,
   }) {
-    const { table, sortBy } = params;
-    this.#header = table.header();
-    const rows = table.data();
-    const sortIndex = table.header().indexOf(sortBy);
+    const { data, sortBy } = params;
+    this.#header = data.header();
+    const rows = data.data();
+    const sortIndex = data.header().indexOf(sortBy);
     if (!sortIndex) {
       this.#data = rows;
       return;

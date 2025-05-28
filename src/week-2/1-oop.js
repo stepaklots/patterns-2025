@@ -44,7 +44,7 @@ class Basket {
   #errors;
 
   constructor({ limit }) {
-    const { promise, resolve } = new BasketPromise();
+    const { promise, resolve } = Promise.withResolvers();
     this.#resolve = resolve;
     this.#promise = promise;
     this.#total = 0;
@@ -74,40 +74,27 @@ class Basket {
     }
   }
 
-  promise() {
-    return this.#promise;
+  then(value) {
+    this.#promise.then(value);
   }
 }
 
-class BasketPromise {
-  resolve;
-  constructor() {
-    const promise = new Promise((resolve) => {
-      this.resolve = resolve;
-    });
-    return { promise, resolve: this.resolve };
+const basketLogger = async (basket) => {
+  const { errors, items, total } = await basket;
+  for (let error of errors) {
+    console.log(error);
   }
-}
-
-class BasketLogger {
-  constructor(basketPromise) {
-    basketPromise.then(({ errors, items, total }) => {
-      for (let error of errors) {
-        console.log(error);
-      }
-      for (let item of items) {
-        console.log(item);
-      }
-      console.log(`Total: ${total}`);
-    });
+  for (let item of items) {
+    console.log(item);
   }
+  console.log(`Total: ${total}`);
 }
 
 const main = async () => {
   const goods = PurchaseIterator.create(purchase);
   const basket = new Basket({ limit: 1050 });
 
-  new BasketLogger(basket.promise());
+  basketLogger(basket);
 
   for await (const item of goods) {
     basket.add(item);

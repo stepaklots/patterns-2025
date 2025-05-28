@@ -1,3 +1,3 @@
-export interface Cloneable {
-  clone(): Cloneable;
+export interface Cloneable<T> {
+  clone(): T;
 }

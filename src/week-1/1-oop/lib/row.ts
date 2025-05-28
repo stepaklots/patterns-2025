@@ -13,13 +13,13 @@ export class Row {
   }
 
   append(newValue: Cell) {
-    const values = this.#cells.map(c => c.clone());
+    const values = this.get();
     values.push(newValue);
     return new Row(values);
   }
 
   update(index: number, value: Cell) {
-    const values = this.#cells.map(c => c.clone());
+    const values = this.get();
     values[index] = value;
     return new Row(values);
   }
