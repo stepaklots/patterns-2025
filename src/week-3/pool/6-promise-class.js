@@ -2,14 +2,14 @@
 
 class Factory {
   #method;
-  #options;
-  constructor(method, options) {
+  #args;
+  constructor({ method, args }) {
     this.#method = method;
-    this.#options = options;
+    this.#args = args;
   }
 
   create() {
-    return this.#method(...this.#options);
+    return this.#method(this.#args);
   }
 }
 
@@ -53,13 +53,14 @@ class Pool {
 
 // Usage
 
-const createBuffer = (size) => new Uint8Array(size);
 const FILE_BUFFER_SIZE = 4096;
+const createBuffer = ({ size }) => new Uint8Array(size);
+const bufferArgs = { size: FILE_BUFFER_SIZE };
 
-const factory = new Factory(
-  createBuffer,
-  [FILE_BUFFER_SIZE],
-);
+const factory = new Factory({
+  method: createBuffer,
+  args: bufferArgs,
+});
 
 const pool = new Pool(
   factory,
@@ -77,3 +78,4 @@ for (let i = 0; i < 4; i++) {
       pool.release(instance);
     });
 }
+g
