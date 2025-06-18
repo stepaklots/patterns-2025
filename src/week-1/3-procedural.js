@@ -51,7 +51,8 @@ const parseCsv = ({ input, withHeader, delimiter, lineBreaker }) => {
   if (withHeader) {
     headers = lines.shift().split(delimiter);
   }
-  const data = lines.map(line => line.split(delimiter));
+  const data = lines
+    .map(line => line.split(delimiter).map((value) => value.trim()));
   return { columnNames: headers, data };
 }
 
@@ -142,3 +143,12 @@ function main() {
 }
 
 main();
+
+export {
+  parseCsv,
+  normalize,
+  sort,
+  addPadding,
+  consolePrint,
+  paddingConfig
+}
