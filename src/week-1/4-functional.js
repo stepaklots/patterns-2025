@@ -10,144 +10,125 @@ const data = `city,population,area,density,country
   New York City,8537673,784,10892,United States
   Bangkok,8280925,1569,5279,Thailand`;
 
-function getPadConfig() {
-  return [
-    {
-      name: 'city',
-      length: 18,
-      align: 'left',
-    },
-    {
-      name: 'population',
-      length: 10,
-      align: 'right',
-    },
-    {
-      name: 'area',
-      length: 8,
-      align: 'right',
-    },
-    {
-      name: 'density',
-      length: 8,
-      align: 'right',
-    },
-    {
-      name: 'country',
-      length: 18,
-      align: 'right',
-    },
-    {
-      name: 'normalized-density',
-      length: 6,
-      align: 'right',
-    },
-  ]
-}
+const padConfig = () => [
+  {
+    name: 'city',
+    length: 18,
+    align: 'left',
+  },
+  {
+    name: 'population',
+    length: 10,
+    align: 'right',
+  },
+  {
+    name: 'area',
+    length: 8,
+    align: 'right',
+  },
+  {
+    name: 'density',
+    length: 8,
+    align: 'right',
+  },
+  {
+    name: 'country',
+    length: 18,
+    align: 'right',
+  },
+  {
+    name: 'normalized-density',
+    length: 6,
+    align: 'right',
+  },
+];
 
-function lineBreaker() {
-  return '\n';
-}
+const lineBreaker = () => '\n';
+const separator = () => ',';
 
-function separator() {
-  return ',';
-}
+const splitLines = (data) => data
+  .split(lineBreaker());
 
-function splitLines(data) {
+const parseLine = (line) => line
+  .split(separator())
+  .map(value => value.trim());
+
+const parseData = (lines, skipFirstRow) => lines
+  .slice(skipFirstRow ? 1 : 0)
+  .map(line => parseLine(line));
+
+const parseCsv = (input, withHeader = true) => ({
+  header: withHeader ? parseLine(splitLines(input)[0]) : [],
+  data: parseData(splitLines(input), withHeader),
+});
+
+const getColumnMaxValue = (data, columnIndex) => data
+  .map(row => parseInt(row[columnIndex], 10))
+  .reduce((max, value) => Math.max(max, value), -Infinity);
+
+const appendNormalizedColumn = (data, sourceIndex) => {
+  const maxValue = getColumnMaxValue(data, sourceIndex);
   return data
-    .split(lineBreaker())
-    .map(value => value.trim());
+    .map(row => [...row, Math.round(row[sourceIndex] / maxValue * 100).toString()]);
 }
 
-function parseLine(line) {
-  return line
-    .trim()
-    .split(separator())
-    .map(value => value.trim());
-}
+const normalize = (normalizeBy, newColumnName, input) => ({
+  header: [...input.header, newColumnName],
+  data: appendNormalizedColumn(
+    input.data,
+    input.header.indexOf(normalizeBy),
+  ),
+});
 
-function parseData(lines, skipFirstRow) {
-  return skipFirstRow
-    ? lines.slice(1).map(line => parseLine(line))
-    : lines.map(line => parseLine(line));
-}
-
-function parseCsv({ input, withHeader = true }) {
-  return {
-    header: withHeader ? parseLine(splitLines(input)[0]) : [],
-    data: parseData(splitLines(input), withHeader),
-  };
-}
-
-function appendNormalizedColumn(data, sourceIndex) {
-  const maxValue = data
-    .map(row => row[sourceIndex])
-    .reduce((a, b) => Math.max(a, b), -Infinity);
-  return data
-    .map(row => row.concat(
-      [Math.round(row[sourceIndex] / maxValue * 100).toString()]
-    ));
-}
-
-function normalize({ input, normalizeBy, newColumnName }) {
-  return {
-    header: input.header.concat([newColumnName]),
-    data: appendNormalizedColumn(
-      input.data,
-      input.header.indexOf(normalizeBy),
-    ),
-  }
-}
-
-function sort({ input, sortBy }) {
+const sort = (sortBy, input) => {
   const index = input.header.indexOf(sortBy);
   return {
     header: input.header,
-    data: [...input.data].sort((a, b) => b[index] - a[index]),
+    data: input.data.toSorted((a, b) => b[index] - a[index]),
   };
 }
 
-function pad({ input, config }) {
-  return {
-    header: input.header,
-    data: input.data.map(row => {
-      return row.map((value, index) => {
-        const padConfig = config.find((c) => c.name === input.header[index]);
-        if (padConfig) {
-          return padConfig.align === 'left'
-            ? value.padEnd(padConfig.length)
-            : value.padStart(padConfig.length);
-        }
-        return value;
-      });
-    }),
-  };
+const pad = (config, input) => ({
+  header: input.header,
+  data: input.data.map(row => {
+    return row.map((value, index) => {
+      const padConfig = config.find((c) => c.name === input.header[index]);
+      if (padConfig) {
+        return padConfig.align === 'left'
+          ? value.padEnd(padConfig.length)
+          : value.padStart(padConfig.length);
+      }
+      return value;
+    });
+  }),
+});
 
-}
+const print = (printerFn, separator, input) => input.data
+  .forEach(row => printerFn(row.join(separator)));
 
-function print({ input, separator }) {
-  input.data
-    .forEach(row => console.log(row.join(separator)));
-}
-
-function main() {
-  print({
-    input: pad({
-      input: sort({
-        input: normalize({
-          input: parseCsv({
-            input: data,
-            withHeader: true,
-          }),
-          normalizeBy: 'density',
-          newColumnName: 'normalized-density',
-        }),
-        sortBy: 'normalized-density',
-      }),
-      config: getPadConfig()
-    }),
-    separator: '',
-  });
-}
+const main = () =>
+  print(
+    console.log,
+    '',
+    pad(
+      padConfig(),
+      sort(
+        'normalized-density',
+        normalize(
+          'density',
+          'normalized-density',
+          parseCsv(data, true),
+        ),
+      ),
+    ),
+  );
 
 main();
+
+export {
+  parseCsv,
+  normalize,
+  sort,
+  pad,
+  print,
+}
