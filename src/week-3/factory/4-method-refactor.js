@@ -12,13 +12,13 @@ class Creator {
     this.#args = args;
   }
   factoryMethod() {
-    return new Product(this.#args);
+    return new Product(...this.#args);
   }
 }
 
 // Usage
 
-const creator = new Creator('value', 'another value');
+const creator = new Creator('value');
 console.dir(creator);
 const product = creator.factoryMethod();
 console.dir(product);
