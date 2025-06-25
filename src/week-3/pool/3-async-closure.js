@@ -5,13 +5,23 @@ const poolify = ({ factory, size, max }) => {
     .fill(null)
     .map(factory);
 
+  let createdTotal = instances.length;
   const acquireQueue = [];
 
   const acquire = (callback) => {
-    const instance = instances.pop();
+    let instance = instances.pop();
+    if (!instance && createdTotal < max) {
+      instance = factory();
+      createdTotal++;
+    }
+
     if (instance) {
-      return callback(instance);
+      process.nextTick(() => {
+        console.log('>> calling callback from acquire (async)');
+        callback(instance);
+      });
     } else {
+      console.log('>> pushing to queue');
       acquireQueue.push(callback);
     }
   }
@@ -19,13 +29,14 @@ const poolify = ({ factory, size, max }) => {
   const release = (instance) => {
     if (acquireQueue.length > 0) {
       const callback = acquireQueue.shift();
-      callback(instance);
+      process.nextTick(() => {
+        console.log('>> calling callback from release (async)');
+        callback(instance);
+      });
       return;
     }
-
-    if (instances.length < max) {
-      instances.push(instance);
-    }
+    instances.push(instance);
+    console.log('>> released instance back to pool');
   }
 
   return { acquire, release };
@@ -41,16 +52,15 @@ const pool = poolify({
   max: 2,
 });
 
-const timeout = (s) => new Promise((resolve) => setTimeout(resolve, s * 1000));
-
-const callback = async (instance) => {
-  console.log(`using`);
-  await timeout(2);
-  console.log(`releasing`);
+const callback = (instance) => {
+  console.log('>>> acquired instance');
   pool.release(instance);
+  console.log('>>> released instance');
 };
 
+console.log('--- before acquiring ---');
 pool.acquire(callback);
 pool.acquire(callback);
 pool.acquire(callback);
 pool.acquire(callback);
+console.log('--- after initiating all acquires ---');

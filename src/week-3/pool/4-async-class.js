@@ -17,6 +17,7 @@ class Pool {
   #factory;
   #max;
   #instances;
+  #createdTotal;
   #acquireQueue = [];
 
   constructor(factory, { size, max }) {
@@ -25,12 +26,18 @@ class Pool {
     this.#instances = new Array(size)
       .fill(null)
       .map(() => this.#factory.create());
+    this.#createdTotal = this.#instances.length;
   }
 
   acquire(callback) {
-    const instance = this.#instances.pop();
+    let instance = this.#instances.pop();
+    if (!instance && this.#instances.length < this.#max) {
+      instance = this.#factory.create();
+      this.#createdTotal++;
+    }
+
     if (instance) {
-      callback(instance);
+      process.nextTick(() => callback(instance));
     } else {
       this.#acquireQueue.push(callback);
     }
@@ -39,13 +46,10 @@ class Pool {
   release(instance) {
     if (this.#acquireQueue.length > 0) {
       const callback = this.#acquireQueue.shift();
-      callback(instance);
+      process.nextTick(() => callback(instance));
       return;
     }
-
-    if (this.#instances.length < this.#max) {
-      this.#instances.push(instance);
-    }
+    this.#instances.push(instance);
   }
 }
 
@@ -64,13 +68,10 @@ const pool = new Pool(
   { size: 2, max: 2 },
 );
 
-const timeout = (s) => new Promise((resolve) => setTimeout(resolve, s * 1000));
-
-const callback = async (instance) => {
-  console.log(`using`);
-  await timeout(2);
-  console.log(`releasing`);
+const callback = (instance) => {
+  console.log(`acquired instance`);
   pool.release(instance);
+  console.log(`released instance`);
 };
 
 pool.acquire(callback);

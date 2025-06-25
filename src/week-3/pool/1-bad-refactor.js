@@ -5,17 +5,20 @@ const poolify = ({ factory, size, max }) => {
   const instances = new Array(size)
     .fill(null)
     .map(createInstance);
+  let createdTotal = instances.length;
 
   const acquire = () => {
     const instance = instances.pop();
-    return instance || createInstance();
+    if (instance) return instance;
+    if (createdTotal < max) {
+      const newInstance = createInstance();
+      createdTotal++;
+      return newInstance;
+    }
+    return null;
   }
 
-  const release = (instance) => {
-    if (instances.length < max) {
-      instances.push(instance);
-    }
-  }
+  const release = (instance) => instances.push(instance);
 
   return { acquire, release };
 };

@@ -17,22 +17,29 @@ class Pool {
   #factory;
   #max;
   #instances;
+  #createdTotal;
   constructor(factory, { size, max }) {
     this.#factory = factory;
     this.#max = max;
     this.#instances = new Array(size)
       .fill(null)
       .map(() => this.#factory.create());
+    this.#createdTotal = this.#instances.length;
   }
 
   acquire() {
-    return this.#instances.pop() || this.#factory.create();
+    const instance = this.#instances.pop();
+    if (instance) return instance;
+    if (this.#createdTotal < this.#max) {
+      const newInstance = this.#factory.create();
+      this.#createdTotal++;
+      return newInstance;
+    }
+    return null;
   }
 
   release(instance) {
-    if (this.#instances.length < this.#max) {
-      this.#instances.push(instance);
-    }
+    this.#instances.push(instance);
   }
 }
 
@@ -42,8 +49,8 @@ const createBuffer = ({ size }) => new Uint8Array(size);
 const FILE_BUFFER_SIZE = 4096;
 
 const factory = new Factory({
-    method: createBuffer,
-    args: { size: FILE_BUFFER_SIZE },
+  method: createBuffer,
+  args: { size: FILE_BUFFER_SIZE },
 });
 
 const pool = new Pool(
