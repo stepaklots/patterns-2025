@@ -1,0 +1,5 @@
+{
+  "name": "strategy-module",
+  "type": "commonjs",
+  "main": "main.js"
+}
