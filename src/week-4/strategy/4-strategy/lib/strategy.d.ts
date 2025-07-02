@@ -1,8 +1,4 @@
 declare class Strategy {
-  #strategies: Map<string, Function[]>;
-  #strategyName: string;
-  #actions: string[];
-
   constructor(
     strategyName: string,
     actions: string[],

@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "module": "NodeNext",
     "allowJs": true,
     "strict": true,
     "target": "ES2024",

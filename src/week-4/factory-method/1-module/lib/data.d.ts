@@ -1,6 +1,6 @@
-declare class Data {
+declare interface StorageData {
   city: string;
   name: string;
 }
 
-export default Data;
+export default StorageData;

@@ -1,5 +1,4 @@
 import { Cell } from '@/week-1/1-oop/lib/cell';
-import { PaddingAlign } from '@/week-1/1-oop/padding.config';
 
 export class Row {
   readonly #cells: Cell[];

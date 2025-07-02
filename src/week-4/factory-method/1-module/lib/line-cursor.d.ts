@@ -1,10 +1,11 @@
 import Database from './database.js';
-import Data from './data.js';
+import Cursor from '@/week-4/factory-method/1-module/lib/cursor';
 
-declare class LineCursor {
-  current: number;
-  constructor(storage: Database, query: Partial<Data>);
-  [Symbol.asyncIterator](): AsyncIterator<Data>;
+declare class LineCursor<T> extends Cursor<T> {
+  constructor(
+    storage: Database<T>,
+    query: Partial<T>,
+  );
 }
 
 export default LineCursor;

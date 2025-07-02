@@ -1,9 +1,7 @@
-import Data from './data.js';
-
-declare class Cursor implements AsyncIterable<Data> {
+declare class Cursor<T> implements AsyncIterable<T> {
   current: number;
   constructor();
-  [Symbol.asyncIterator](): AsyncIterator<Data>;
+  [Symbol.asyncIterator](): AsyncIterator<T>;
 }
 
 export default Cursor;

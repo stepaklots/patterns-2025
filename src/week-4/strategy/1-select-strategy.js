@@ -1,11 +1,9 @@
 const selectStrategy = (strategies, name) => {
-  const map = new Map(Object.entries(strategies));
-  if (map.has(name)) {
-    const strategy = map.get(name);
-    return (data) => strategy(data);
+  const strategy = strategies[name] ?? strategies.abstract;
+  if (typeof strategy !== 'function') {
+    throw new Error(`Invalid strategy: ${name}`);
   }
-  console.error(`Strategy: "${name}" not found in ${JSON.stringify(Object.keys(strategies))}`);
-  return (data) => strategies.abstract(data);
+  return data => strategy(data);
 }
 
 module.exports = selectStrategy;

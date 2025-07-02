@@ -12,7 +12,7 @@ const testData = [
 
 
 const readStreamMock = (data) => {
-  return Readable.from(data.map(e => JSON.stringify(e ) + '\n'));
+  return Readable.from(data.map(e => JSON.stringify(e) + '\n'));
 };
 
 class StorageTest extends Database {
@@ -27,20 +27,22 @@ class StorageTest extends Database {
 }
 
 describe('file storage module unit tests', () => {
-  const getCursorCount = async (cursor) => {
-    let count = 0;
+  const iterate = async (cursor) => {
+    const result = [];
     for await (const record of cursor) {
-      count++;
+      result.push(record);
     }
-    return count;
+    return result;
   }
 
   it('should iterate over stream', async () => {
     const db = new StorageTest();
     const cursor = db.select();
 
-    let count = await getCursorCount(cursor);
-    assert.strictEqual(count, 2, 'Expected 2');
+    let result = await iterate(cursor);
+
+    assert.strictEqual(result.length, 2, 'Expected 2');
+    assert.deepStrictEqual(result, testData, 'Expected equal data');
   });
 
 
@@ -48,7 +50,9 @@ describe('file storage module unit tests', () => {
     const db = new StorageTest();
     const cursor = db.select({ city: 'Beijing' });
 
-    let count = await getCursorCount(cursor);
-    assert.strictEqual(count, 1, 'Expected 1');
+    let result = await iterate(cursor);
+
+    assert.strictEqual(result.length, 1, 'Expected 1');
+    assert.deepStrictEqual(result, [ { city: 'Beijing', country: 'China' } ], 'Expected equal data');
   });
 })
