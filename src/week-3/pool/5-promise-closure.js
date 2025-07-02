@@ -9,7 +9,7 @@ const poolify = ({ factory, size, max }) => {
 
   const requestQueue = [];
 
-  const acquire = async () => {
+  const acquire = () => {
     return new Promise((resolve) => {
       const instance = instances.pop();
       if (instance) {
@@ -26,10 +26,7 @@ const poolify = ({ factory, size, max }) => {
       resolve(instance);
       return;
     }
-
-    if (instances.length < max) {
-      instances.push(instance);
-    }
+    instances.push(instance);
   }
 
   return { acquire, release };
@@ -47,14 +44,12 @@ const pool = poolify({
   size: 2,
   max: 2,
 });
-const timeout = (s) => new Promise((resolve) => setTimeout(resolve, s * 1000));
 
 for (let i = 0; i < 4; i++) {
   pool.acquire()
     .then(async (instance) => {
-      console.log(`using ${i + 1}`);
-      await timeout(2);
-      console.log(`releasing ${i + 1}`);
+      console.log(`acquired ${i + 1}`);
       pool.release(instance);
+      console.log(`released ${i + 1}`);
     });
 }
