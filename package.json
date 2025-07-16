@@ -1,5 +1,6 @@
 {
   "scripts": {
+    "lint": "eslint . && prettier -c \"**/*.js\"",
     "prebuild": "rm -rf built",
     "1-0": "node src/week-1/0-task.js",
     "1-1": "node src/week-1/1-oop.js",
@@ -27,6 +28,8 @@
     "globals": "^16.2.0",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",
-    "typescript-eslint": "^8.32.1"
+    "typescript-eslint": "^8.32.1",
+    "eslint-config-metarhia": "^9.1.0",
+    "prettier": "^3.3.3"
   }
 }
